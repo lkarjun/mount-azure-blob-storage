@@ -1,2 +1,4 @@
 __pycache__
 mount_azure_blob.egg-info
+.ipynb_checkpoints
+nbs/.env
