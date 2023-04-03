@@ -59,6 +59,9 @@ def mount_storage(mount_path = "blob-storage", config_file=None):
             container_name=os.getenv("container_name"),
             mount_path=os.getenv("mount_path", default=mount_path)
         )
+        os.environ.pop('container_name')
+        os.environ.pop('account_key')
+        os.environ.pop('account_name')
     else:
         accountName = widgets.Text(description='accountName')
         accountKey = widgets.Text(description='accountKey')
