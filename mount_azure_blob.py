@@ -14,25 +14,51 @@ def install_dependenices():
         sudo apt-get install blobfuse
         rm packages-microsoft-prod.deb
     """
-    output = subprocess.check_output(dependencies_install_command, shell=True)
+    try:
+        output = subprocess.check_output(dependencies_install_command, shell=True)
+    except subprocess.CalledProcessError as e:
+        output = e.output.decode()
+        print("\nFailed to Install Dependencies...\n")
+        print(str(e))
+
     print("Dependencies Installed...")
 
 
-def _mount_storage_helper(account_name, account_key, container_name, mount_path):
-    print("\nMounting azure blob storage...")
-    with open("fuse_connection.cfg", "w") as f:
+def create_config_file(
+    account_name, account_key, container_name, config_export_path
+):
+    with open(config_export_path, "w") as f:
         content = f"""accountName {account_name}\naccountKey {account_key}\ncontainerName {container_name}"""
         f.write(content)
+    print(f"Config created file={config_export_path}...")
 
+
+def _mount_storage_helper(
+    mount_path, account_name=None, account_key=None, container_name=None, config_file=None
+):
+    print("\nMounting azure blob storage (blobfuse v1)...")
+    if config_file is None:
+        config_file = "fuse_connection.cfg"
+        with open(config_file, "w") as f:
+            content = f"""accountName {account_name}\naccountKey {account_key}\ncontainerName {container_name}"""
+            f.write(content)
+    print("Installing Dependencies...")
     install_dependenices()
 
     command = f"""
         chmod 600 fuse_connection.cfg
         mkdir {mount_path}
-        sudo blobfuse {mount_path} --tmp-path=/mnt/resource/blobfusetmp  --config-file=fuse_connection.cfg -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
+        sudo blobfuse {mount_path} --tmp-path=/mnt/resource/blobfusetmp  --config-file={config_file} -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
         rm fuse_connection.cfg
       """
-    output = subprocess.check_output(command, shell=True)
+    
+    try:
+        output = subprocess.check_output(command, shell=True)
+    except subprocess.CalledProcessError as e:
+        output = e.output.decode()
+        print("\nFailed to Mount Blob Storage...\n")
+        print(str(e))
+
     print("Successfully Mounted...")
 
 
@@ -52,16 +78,8 @@ def _mount_storage__widget_helper(
 
 
 def mount_storage(mount_path = "blob-storage", config_file=None):
-    if config_file and load_dotenv(dotenv_path=config_file):
-        _mount_storage_helper(
-            account_name=os.getenv("account_name"),
-            account_key=os.getenv("account_key"),
-            container_name=os.getenv("container_name"),
-            mount_path=os.getenv("mount_path", default=mount_path)
-        )
-        os.environ.pop('container_name')
-        os.environ.pop('account_key')
-        os.environ.pop('account_name')
+    if config_file:
+        _mount_storage_helper(mount_path=mount_path, config_file=config_file)
     else:
         accountName = widgets.Text(description='accountName')
         accountKey = widgets.Text(description='accountKey')

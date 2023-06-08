@@ -17,9 +17,9 @@ mount_storage(mount_path="blob-storage", config_file="path-to-.env-file")
 ```
 #### sample ```config_file``` / ```.env```
 ```
-account_name="..."
-account_key="..."
-container_name="..."
+accountName ...
+accountKey ...
+containerName ...
 ```
 output: 
 
