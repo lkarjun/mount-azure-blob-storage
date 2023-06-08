@@ -37,7 +37,9 @@ def _mount_storage_helper(
     mount_path, account_name=None, account_key=None, container_name=None, config_file=None
 ):
     print("\nMounting azure blob storage (blobfuse v1)...")
+    rm_config = False
     if config_file is None:
+        rm_config = True
         config_file = "fuse_connection.cfg"
         with open(config_file, "w") as f:
             content = f"""accountName {account_name}\naccountKey {account_key}\ncontainerName {container_name}"""
@@ -49,7 +51,6 @@ def _mount_storage_helper(
         chmod 600 fuse_connection.cfg
         mkdir {mount_path}
         sudo blobfuse {mount_path} --tmp-path=/mnt/resource/blobfusetmp  --config-file={config_file} -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
-        rm fuse_connection.cfg
       """
     
     try:
@@ -58,6 +59,9 @@ def _mount_storage_helper(
         output = e.output.decode()
         print("\nFailed to Mount Blob Storage...\n")
         print(str(e))
+
+    if rm_config:
+        os.remove(config_file)
 
     print("Successfully Mounted...")
 

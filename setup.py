@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name = "mount_azure_blob",
-    version = "0.0.6",
+    version = "0.0.7",
     author = "Lalkrishna",
     url = "https://github.com/lkarjun/mount-azure-blob-storage/",
     description = "Mount Azure blob storage in google colab.",
